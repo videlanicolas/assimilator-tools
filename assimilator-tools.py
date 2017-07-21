@@ -4,14 +4,15 @@ from modules import general,firewall
 
 urllib3.disable_warnings()
 
-
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(prog='Assimilator Tools',description='Assimilator tools for Assimilator API.\nhttps://github.com/videlanicolas/assimilator')
-	parser.add_argument('-v','--version', action='version', version='%(prog)s - Version: 1.0.0')
+	parser.add_argument('-v','--version', action='version', version='%(prog)s - Version: 1.0.1')
 	generalNamed = parser.add_argument_group('General commands')
-	generalNamed.add_argument('-f','--firewall', required=True, help='firewall name as configured in Assimilator')
-	generalNamed.add_argument('-p','--port', required=False, default='443', type=str, help='Assimilator\'s listening port')
-	generalNamed.add_argument('-c','--config', required=False, action='store_true', default=False , help='get firewall\'s configuration')
+	generalNamed.add_argument('-l','--list-firewalls', required=False, help='List Firewalls.')
+	generalNamed.add_argument('-f','--firewall', required=False, help='firewall name as configured in Assimilator.')
+	generalNamed.add_argument('-p','--port', required=False, default='443', type=str, help='Assimilator\'s listening port.')
+	generalNamed.add_argument('-c','--config', required=False, action='store_true', default=False , help='get firewall\'s configuration.')
+	generalNamed.add_argument('-u','--output', required=False, default=None, help='output to file.')
 	ruleNamed = parser.add_argument_group('Rules commands')
 	ruleNamed.add_argument('-r','--rules', required=False, action='store_true', default=False, help='get firewall\'s rules')
 	ruleNamed.add_argument('--source-zone', required=False, action='store_true', default=False, help='filter by source zone, requires --rules')
@@ -43,8 +44,23 @@ if __name__ == '__main__':
 			print str(e)
 			quit(1)
 		else:
-			print "Firewall {0} configuration:"
-			print r['config']
+			if args.output:
+				open(args.output,'w').write(r['config'].encode('utf-8'))
+				print "Wrote configuration to file {0}".format(args.output)
+			else:
+				print "Firewall {0} configuration:".format(args.firewall)
+				print r['config']
+	elif args.list_firewalls:
+		try:
+			print "Retrieving firewall list ..."
+			r = fw.listfirewalls()
+		except Exception as e:
+			print str(e)
+			quit(1)
+		else:
+			assert type(r) == list, 'Return non-list: {0}'.format(str(r))
+			print "Firewall list:"
+			print "\n".join(r)
 	elif args.rules:
 		try:
 			print "Retrieving {0} rules ...".format(args.firewall)
@@ -88,4 +104,6 @@ if __name__ == '__main__':
 		else:
 			print "Firewall {0} routes:".format(args.firewall)
 			print r
+	else:
+		print "No option!"
 	############### SECTION#####################

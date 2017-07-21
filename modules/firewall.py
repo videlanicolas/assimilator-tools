@@ -19,12 +19,20 @@ class Firewall():
 		self.verify = verify
 		self.port = port
 		self.headers = {'Content-Type' : 'application/json', 'User-Agent' : 'Assimilator Tools', 'key' : apikey}
+	def __listfirewalls(self):
+		r = requests.get('https://{0}:{1}/api/listfirewalls'.format(self.hostname,self.port),headers=self.headers,verify=self.verify)
+		if r.status_code == 200:
+			return r.json()
+		else:
+			raise Exception("Error retrieving configuration: HTTP {0}\n{1}".format(str(r.status_code),r.text))
 	def __get(self,firewall,resource):
 		r = requests.get('https://{0}:{1}/api/{2}/{3}'.format(self.hostname,self.port,firewall,resource),headers=self.headers,verify=self.verify)
 		if r.status_code == 200:
 			return r.json()
 		else:
 			raise Exception("Error retrieving configuration: HTTP {0}\n{1}".format(str(r.status_code),r.text))
+	def listfirewalls(self):
+		return self.__listfirewalls()
 	def config(self,firewall):
 		return self.__get(firewall,'config')
 	def rules(self,firewall):
